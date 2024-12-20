@@ -1,0 +1,5 @@
+#Creer user
+php bin/console make:user
+
+# generate SSL Key
+php bin/console lexik:jwt:generate-keypair
