@@ -177,10 +177,15 @@
         const crypto = cryptos.value.find(c => c.id === cryptoId);
         if (!crypto) continue;
   
-        const priceData = crypto.priceHistory.filter((_, index) => {
-          const timestamp = Date.now() - (crypto.priceHistory.length - index) * 10000;
+        // const priceData = crypto.priceHistory.filter((_, index) => {
+        //   const timestamp = Date.now() - (crypto.priceHistory.length - index) * 10000;
+        //   return timestamp >= start && timestamp <= end;
+        // });
+        const priceData = crypto.priceHistory.filter(entry => {
+          const timestamp = entry.date.getTime();
           return timestamp >= start && timestamp <= end;
-        });
+        }).map(entry => entry.price);
+
   
         if (priceData.length === 0) continue;
   

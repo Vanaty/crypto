@@ -1,9 +1,13 @@
+export interface PriceHistory {
+  date: Date;
+  price: number;
+}
 export interface CryptoData {
   id: string;
   name: string;
   symbol: string;
   currentPrice: number;
-  priceHistory: number[];
+  priceHistory: PriceHistory[];
   change24h: number;
 }
 
