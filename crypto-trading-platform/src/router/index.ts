@@ -4,6 +4,7 @@ import Home from '../views/Home.vue';
 import CryptoDetail from '../views/CryptoDetail.vue';
 import Transactions from '../views/Transactions.vue';
 import Login from '../views/Login.vue';
+import Analysis from '../views/Analysis.vue';
 import Register from '../views/Register.vue';
 
 export const router = createRouter({
@@ -22,6 +23,11 @@ export const router = createRouter({
     { 
       path: '/transactions',
       component: Transactions,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/analysis',
+      component: Analysis,
       meta: { requiresAuth: true }
     },
     { 

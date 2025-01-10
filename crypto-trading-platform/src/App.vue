@@ -15,6 +15,9 @@
               <li class="nav-item">
                 <router-link class="nav-link" to="/transactions">Transactions</router-link>
               </li>
+              <li class="nav-item">
+                <router-link class="nav-link" to="/analysis">Analysis</router-link>
+              </li>
             </template>
           </ul>
           <div class="d-flex">
