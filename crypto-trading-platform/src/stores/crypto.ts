@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import type { CryptoData, Transaction } from '../types/crypto';
 
 const INITIAL_CRYPTOS: CryptoData[] = [

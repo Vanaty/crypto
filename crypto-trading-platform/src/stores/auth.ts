@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed} from 'vue';
 import axios from 'axios';
 import type { User, LoginCredentials, RegisterCredentials, AuthResponse } from '../types/auth';
 import { jwtDecode } from 'jwt-decode';
@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
   const tempEmail = ref<string | null>(null);
 
   const isAuthenticated = computed(() => !!token.value);
+  // const isAuthenticated = computed(() => validateToken());
 
   const setAuthData = (authResponse: AuthResponse) => {
     if (authResponse.token) {
@@ -23,6 +24,30 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('token', authResponse.token);
     }
   };
+
+  // const validateToken = async () => {
+  //   if (!token.value) {
+  //     return false;
+  //   }
+
+  //   try {
+  //     return await isTokenValid(token.value);
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // };
+
+  // const isTokenValid = async (token: string | null) => {
+  //   try {
+  //     const response = await axios.post(`${API_URL}/api/token/checked/${token}`);
+  //     if (response.data.success == true) {
+  //         return true; 
+  //     }
+  //     return false;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // };
 
   const register = async (credentials: RegisterCredentials) => {
     try {

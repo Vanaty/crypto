@@ -7,7 +7,7 @@
             <h2 class="card-title text-center mb-4">Login</h2>
 
             <!-- Login Form -->
-            <form @submit.prevent="handleSubmit" v-if="!isOtpPending && !isTfaPending">
+            <form @submit.prevent="handleSubmit" v-if="!isOtpPending">
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input
@@ -54,7 +54,7 @@
               </div>
             </form>
 
-            <!-- 2FA Verification -->
+            <!-- 2FA Verification
             <form @submit.prevent="handleTfaSubmit" v-if="isTfaPending">
               <div class="mb-3">
                 <label for="tfaCode" class="form-label">Enter 2FA Code</label>
@@ -71,7 +71,7 @@
                   {{ loading ? 'Verifying...' : 'Verify 2FA' }}
                 </button>
               </div>
-            </form>
+            </form> -->
 
             <div class="text-center mt-3">
               <router-link to="/register">Don't have an account? Register</router-link>
@@ -98,7 +98,7 @@ const credentials = ref<LoginCredentials>({
   password: ''
 });
 const otp = ref('');
-const tfaCode = ref('');
+// const tfaCode = ref('');
 const loading = ref(false);
 
 const handleSubmit = async () => {
@@ -134,15 +134,15 @@ const handleOtpSubmit = async () => {
   }
 };
 
-const handleTfaSubmit = async () => {
-  try {
-    loading.value = true;
-    await authStore.verifyTfa(tfaCode.value);
-    router.push('/');
-  } catch (error) {
-    alert('Invalid 2FA code. Please try again.');
-  } finally {
-    loading.value = false;
-  }
-};
+// const handleTfaSubmit = async () => {
+//   try {
+//     loading.value = true;
+//     await authStore.verifyTfa(tfaCode.value);
+//     router.push('/');
+//   } catch (error) {
+//     alert('Invalid 2FA code. Please try again.');
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 </script>
