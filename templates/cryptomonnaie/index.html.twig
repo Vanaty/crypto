@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptomonnaies</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Liste des Cryptomonnaies</h1>
+
+    <!-- Table des cryptomonnaies -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Symbole</th>
+                <th>Cours</th>
+                <th>Date de mise à jour</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crypto in cryptomonnaies %}
+                <tr>
+                    <td>{{ crypto.nom }}</td>
+                    <td>{{ crypto.symbole }}</td>
+                    <td>{{ crypto.cours }}</td>
+                    <td>{{ crypto.updatedAt ? crypto.updatedAt|date('Y-m-d H:i:s') : 'Non disponible' }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4">Aucune cryptomonnaie trouvée.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br>
+
+    <!-- Bouton pour mettre à jour les cryptomonnaies -->
+    <form method="get" action="{{ path('update_cryptomonnaies') }}">
+        <button type="submit">Mettre à jour les cours</button>
+    </form>
+
+    <br>
+
+    <!-- Script pour actualiser la page -->
+    <script>
+        // Rafraîchir la page toutes les 10 secondes
+        setInterval(function() {
+            window.location.reload();
+        }, 10000);
+    </script>
+</body>
+</html>
