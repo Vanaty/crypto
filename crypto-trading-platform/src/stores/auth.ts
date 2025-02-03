@@ -2,19 +2,25 @@ import { defineStore } from 'pinia';
 import { ref, computed} from 'vue';
 import axios from 'axios';
 import type { User, LoginCredentials, RegisterCredentials, AuthResponse } from '../types/auth';
-import { jwtDecode } from 'jwt-decode';
 
-const API_URL = 'http://localhost:8080'; // Replace with your actual API URL
+const API_URL = import.meta.env.VITE_API_URL; // Replace with your actual API URL
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null);
-  const token = ref<string | null>(null);
+  const loadUser= () => {
+    let u = localStorage.getItem('user');
+    if (u != null) {
+      const x:User = JSON.parse(u);
+      return x;
+    }
+    return null;
+  };
+  const user = ref<User | null>(loadUser());
+  const token = ref<string | null>(localStorage.getItem('token'));
   const isOtpPending = ref(false);
   const isTfaPending = ref(false);
   const tempEmail = ref<string | null>(null);
 
-  const isAuthenticated = computed(() => !!token.value);
-  // const isAuthenticated = computed(() => validateToken());
+  const isAuthenticated = computed(() => !!token.value && !!user.value);
 
   const setAuthData = (authResponse: AuthResponse) => {
     if (authResponse.token) {
@@ -22,39 +28,31 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = authResponse.user;
       axios.defaults.headers.common['Authorization'] = `Bearer ${authResponse.token}`;
       localStorage.setItem('token', authResponse.token);
+      localStorage.setItem('user', JSON.stringify(authResponse.user));
     }
   };
 
-  // const validateToken = async () => {
-  //   if (!token.value) {
-  //     return false;
-  //   }
-
-  //   try {
-  //     return await isTokenValid(token.value);
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // };
-
-  // const isTokenValid = async (token: string | null) => {
-  //   try {
-  //     const response = await axios.post(`${API_URL}/api/token/checked/${token}`);
-  //     if (response.data.success == true) {
-  //         return true; 
-  //     }
-  //     return false;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
+  const validateToken = async () => {
+    if (!token.value) return false;
+    try {
+      const response = await axios.post(`${API_URL}/api/token/checked/${token.value}`);
+      if (response.data.success) {
+        return true;
+      }
+      logout();
+      return false;
+    } catch (error) {
+      logout();
+      return false;
+    }
+  };
 
   const register = async (credentials: RegisterCredentials) => {
     try {
       const response = await axios.post(`${API_URL}/api/users/register`, credentials);
       tempEmail.value = credentials.email;
-      if (response.data.success == true) {
-        isOtpPending.value = true; 
+      if (response.data.success) {
+        isOtpPending.value = true;
       }
       return response.data;
     } catch (error) {
@@ -68,11 +66,62 @@ export const useAuthStore = defineStore('auth', () => {
         email: tempEmail.value,
         pin: otp,
       });
-      // setAuthData(response.data);
       if (response.data.success) {
-        isOtpPending.value = false; 
+        isOtpPending.value = false;
       }
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    user.value = null;
+    token.value = null;
+    delete axios.defaults.headers.common['Authorization'];
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
+
+  const initAuth = async () => {
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (savedToken && savedUser) {
+      try {
+        if (await isTokenValid(savedToken)) {
+          token.value = savedToken;
+          user.value = JSON.parse(savedUser);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+          await validateToken();
+        } else {
+          logout();
+        }
+      } catch {
+        logout();
+      }
+    }
+  };
+
+
+  // const validateToken = async () => {
+  //   if (!token.value) {
+  //     return false;
+  //   }
+
+  //   try {
+  //     return await isTokenValid(token.value);
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // };
+
+  const isTokenValid = async (token: string | null) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/token/checked/${token}`);
+      if (response.data.success == true) {
+          return true; 
+      }
+      return false;
     } catch (error) {
       throw error;
     }
@@ -142,31 +191,6 @@ export const useAuthStore = defineStore('auth', () => {
       return response.data;
     } catch (error) {
       throw error;
-    }
-  };
-
-  const logout = () => {
-    user.value = null;
-    token.value = null;
-    delete axios.defaults.headers.common['Authorization'];
-    localStorage.removeItem('token');
-  };
-
-  // Initialize auth state from localStorage
-  const initAuth = () => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      try {
-        const decoded = jwtDecode(savedToken);
-        if (decoded.exp && decoded.exp * 1000 > Date.now()) {
-          token.value = savedToken;
-          axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-        } else {
-          localStorage.removeItem('token');
-        }
-      } catch {
-        localStorage.removeItem('token');
-      }
     }
   };
 
