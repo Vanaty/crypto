@@ -78,6 +78,23 @@ class CryptoTransactionRepository extends ServiceEntityRepository
         $entityManager->flush();
         return $transaction->getId();
     }
+    public function findByUserIdFromView(int $idUser): array
+    {
+        $entityManager = $this->getEntityManager();
+
+        // Requête SQL brute pour interroger la vue
+        $sql = '
+            SELECT *
+            FROM crypto_transaction_view
+            WHERE id_user = :idUser
+        ';
+        // Exécuter la requête SQL
+        $statement = $entityManager->getConnection()->prepare($sql);
+        $result = $statement->executeQuery(['idUser' => $idUser]);
+
+        // Retourner les résultats sous forme de tableau
+        return $result->fetchAllAssociative();
+    }
 
 
 }

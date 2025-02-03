@@ -35,16 +35,17 @@ class CryptoTransactionController extends AbstractController
             return new JsonResponse(['error' => 'Données manquantes'], 400);
         }
         // Extraire les données
+        $statut = 200;
         $idUser = $data['userId'];
         $idCrypto = $data['cryptoId'];
         $type = $data['type'];
         $amount = $data['amount'];
         $date = $data['timestamp'];
-        $userTransaction= new UserTransaction();
         $crypto = $entityManager->getRepository(Crypto::class)->find($idCrypto);
         $cours = $this->entityManager->getRepository( CryptoTransaction::class)->getCours($crypto);
         $data1 = [];
         $devise = $this->entityManager->getRepository(Devise::class)->find(1);
+        $balance = $this->entityManager->getRepository(UserTransaction::class)->calculateUserBalance($idUser);
         // Appeler la fonction createTransaction
         try {
             if($type=='buy'){
@@ -57,10 +58,17 @@ class CryptoTransactionController extends AbstractController
                     $date,
                     $entityManager
                 );
-                $this->entityManager->getRepository( UserTransaction::class)->createUserTransaction($data['userId'], 0,$amount * $cours,(new \DateTime())->setTimestamp($data['timestamp']/1000),$entityManager,$devise);
-                // Retourner une réponse JSON de succès
-                $data1 = ['message' => 'Transaction créée avec succès',
-                    'transaction_id' => $transactionId,];
+                if ($balance -($amount * $cours) < 0) {
+                    $data1 = ['message' => 'Transaction impossible','error' => 'montant insuffisant','data' => null];
+                    $statut = 500;    
+                }
+                else{
+                    $this->entityManager->getRepository( UserTransaction::class)->createUserTransaction($data['userId'], 0,$amount * $cours,(new \DateTime())->setTimestamp($data['timestamp']/1000),$entityManager,$devise);
+                    $data1 = ['message' => 'Transaction créée avec succès',
+                    'transaction_id' => $transactionId,'error'=> null];
+                    $statut = 200;
+                }
+                
             }
             if($type=='sell'){
                 $transactionId = $cryptoTransactionRepository->createTransaction(
@@ -75,12 +83,29 @@ class CryptoTransactionController extends AbstractController
                 $this->entityManager->getRepository( UserTransaction::class)->createUserTransaction($data['userId'], $amount * $cours,0,(new \DateTime())->setTimestamp($data['timestamp']/1000),$entityManager,$devise);
                 // Retourner une réponse JSON de succès
                 $data1 = ['message' => 'Transaction créée avec succès',
-                'transaction_id' => $transactionId,];   
+                'data' => $transactionId,'error'=> null];
+                $statut = 200;   
             }
-            return new JsonResponse($data1,200);
+            return new JsonResponse($data1,$statut);
         } catch (\Exception $e) {
             // Retourner une réponse JSON en cas d'erreur
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
+    #[Route('/ListeCryptoTransaction', name: 'achatvente', methods: ['GET'])]
+    public function getTransaction(
+        Request $request,
+        CryptoTransactionRepository $cryptoTransactionRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $statut = 200;
+        $data = json_decode($request->getContent(), true);
+        $idUser = $data['userId'];
+        if (!isset($data['userId'])) {
+            return new JsonResponse(['error' => 'Données manquantes'], 400);
+        }
+        $cours = $this->entityManager->getRepository( CryptoTransaction::class)->findByUserIdFromView($idUser);        
+        return new JsonResponse(['message' => 'liste obtenu','data'=>$cours], 200);
+    }
+    
 }

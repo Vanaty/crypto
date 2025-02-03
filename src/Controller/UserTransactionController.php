@@ -39,7 +39,7 @@ class UserTransactionController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $userTransaction = new UserTransaction();
-        $userTransaction->setIdUser($data['idUser']);
+        $userTransaction->setIdUser($data['userId']);
         $userTransaction->setEntre($data['entre']);
         $userTransaction->setSortie($data['sortie']);
         $userTransaction->setDatetime((new \DateTime())->setTimestamp($data['timestamp']/1000));
@@ -68,7 +68,7 @@ class UserTransactionController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        $idUser =$data['idUser'];
+        $idUser =$data['userId'];
         $idDevise =$data['idDevise'];
         
         if (!$idUser || !$idDevise) {
