@@ -4,7 +4,9 @@ import Home from '../views/Home.vue';
 import CryptoDetail from '../views/CryptoDetail.vue';
 import Transactions from '../views/Transactions.vue';
 import Login from '../views/Login.vue';
+import Analysis from '../views/Analysis.vue';
 import Register from '../views/Register.vue';
+import Wallet from '../views/Wallet.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -22,6 +24,16 @@ export const router = createRouter({
     { 
       path: '/transactions',
       component: Transactions,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/wallet',
+      component: Wallet,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/analysis',
+      component: Analysis,
       meta: { requiresAuth: true }
     },
     { 

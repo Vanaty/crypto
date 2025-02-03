@@ -65,15 +65,24 @@ const crypto = computed(() =>
   cryptos.value.find(c => c.id === route.params.id)
 );
 
-const chartData = computed(() => ({
-  labels: Array(crypto.value?.priceHistory.length).fill(''),
-  datasets: [{
-    label: 'Price',
-    data: crypto.value?.priceHistory || [],
-    borderColor: '#198754',
-    tension: 0.1
-  }]
-}));
+const chartData = computed(() => {
+  const history = crypto.value?.priceHistory || [];
+  return {
+    labels: history.map(entry => 
+      new Date(entry.date).toLocaleDateString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }) // Formater les dates
+    ),
+    datasets: [{
+      label: 'Price',
+      data: history.map(entry => entry.price), // Utiliser uniquement les prix
+      borderColor: '#198754',
+      tension: 0.1
+    }]
+  };
+});
+
 
 const chartOptions = {
   responsive: true,
