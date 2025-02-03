@@ -1,7 +1,7 @@
 -- Insertion des devises
 INSERT INTO devise (nom, valeur) VALUES
 ('EUR', 1),   -- Euro
-('USD', 1),   -- Dollar US
+('USD', 1),   
 ('MGA', 1); -- Ariary malgache
 
 -- Insertion des cryptomonnaies
@@ -32,3 +32,4 @@ SELECT
     END AS type
 FROM 
     crypto_transaction;
+    
