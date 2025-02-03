@@ -13,6 +13,9 @@
                 <router-link class="nav-link" to="/">Home</router-link>
               </li>
               <li class="nav-item">
+                <router-link class="nav-link" to="/wallet">Wallet</router-link>
+              </li>
+              <li class="nav-item">
                 <router-link class="nav-link" to="/transactions">Transactions</router-link>
               </li>
               <li class="nav-item">
