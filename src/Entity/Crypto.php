@@ -13,7 +13,11 @@ class Crypto
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $nom = null;
 
+    #[ORM\Column(type: 'string', length: 5)]
+    private ?string $symbol = null;
+
     // Getters and Setters
+
     public function getId(): ?int
     {
         return $this->id;
@@ -27,6 +31,15 @@ class Crypto
     public function setNom(string $nom): self
     {
         $this->nom = $nom;
+        return $this;
+    }
+
+    public function getSymbol() {
+        return $this->symbol;
+    }
+    
+    public function setSymbol(string $symbol) {
+        $this->symbol = $symbol;
         return $this;
     }
 }

@@ -73,4 +73,14 @@ class CryptoController extends AbstractController
 
         return new Response('Cours générés pour toutes les cryptos avec la devise spécifiée.', Response::HTTP_OK);
     }
+
+    #[Route('/cryptos', name: 'getAllCryptos', methods: ['GET'])]
+    public function getAll(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $id = $data['id'] ?? null;
+
+        return new Response('Cours générés pour toutes les cryptos avec la devise spécifiée.', Response::HTTP_OK);
+    }
+
 }
