@@ -182,7 +182,7 @@
         //   return timestamp >= start && timestamp <= end;
         // });
         const priceData = crypto.priceHistory.filter(entry => {
-          const timestamp = entry.date.getTime();
+          const timestamp = new Date(entry.date).getTime();
           return timestamp >= start && timestamp <= end;
         }).map(entry => entry.price);
 

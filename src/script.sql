@@ -5,9 +5,9 @@ INSERT INTO devise (nom, valeur) VALUES
 ('MGA', 1); -- Ariary malgache
 
 -- Insertion des cryptomonnaies
-INSERT INTO crypto (nom) VALUES
-('Bitcoin'),
-('Ethereum');
+INSERT INTO crypto (nom,symbol) VALUES
+('Bitcoin','BTC'),
+('Ethereum','ETH');
 
 -- Configuration des paires de devises
 INSERT INTO config_devise (devise_id, devise_base_id, valeur) VALUES 

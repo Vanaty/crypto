@@ -17,6 +17,9 @@ export const useCryptoStore = defineStore('crypto', () => {
       console.error('❌ Erreur API:', error);
     }
   };
+  setInterval(() => {
+    fetchCryptos();
+  },5000);
 
   // Ajouter une transaction
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {

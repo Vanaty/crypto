@@ -62,7 +62,7 @@ const { cryptos } = storeToRefs(store);
 const amount = ref(0);
 
 const crypto = computed(() => 
-  cryptos.value.find(c => c.id === route.params.id)
+  cryptos.value.find(c => c.id == route.params.id)
 );
 
 const chartData = computed(() => {
