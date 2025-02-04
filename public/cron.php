@@ -1,6 +1,6 @@
 <?php
 
-$url = "http://localhost:8081"; // Remplacez par l'URL de votre requête
+$url = "http://localhost:8082/Random"; // Remplacez par l'URL de votre requête
 
 while (true) {
     $ch = curl_init($url);

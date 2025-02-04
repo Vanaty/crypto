@@ -1,9 +1,10 @@
 <?php
-
 namespace App\Service;
 
 use App\Repository\CryptoRepository;
 use App\Repository\CryptoCoursRepository;
+use DateTime;
+use DateInterval;
 
 class CryptoDataService
 {
@@ -22,12 +23,17 @@ class CryptoDataService
         $cryptoDataList = [];
 
         foreach ($cryptos as $crypto) {
+            $latestPrice = $this->getLatestPrice($crypto->getId());
+            $price24hAgo = $this->getPrice24hAgo($crypto->getId());
+            $change24h = $price24hAgo ? (($latestPrice - $price24hAgo) / $price24hAgo) * 100 : 0;
+
             $cryptoDataList[] = [
                 'id' => $crypto->getId(),
                 'name' => $crypto->getNom(),
                 'symbol' => $crypto->getSymbol(),
-                'currentPrice' => $this->getLatestPrice($crypto->getId()),
+                'currentPrice' => $latestPrice,
                 'priceHistory' => $this->getPriceHistory($crypto->getId()),
+                'change24h' => round($change24h, 2),
             ];
         }
 
@@ -42,6 +48,32 @@ class CryptoDataService
         );
 
         return $latestCours ? (float) $latestCours->getCours() : null;
+    }
+
+    private function getPrice24hAgo(int $cryptoId): ?float
+    {
+        $date24hAgo = (new DateTime())->sub(new DateInterval('P1D'));
+
+        $cours24hAgo = $this->cryptoCoursRepository->createQueryBuilder('c')
+            ->where('c.crypto = :crypto')
+            ->andWhere('c.datetime <= :date')
+            ->setParameter('crypto', $cryptoId)
+            ->setParameter('date', $date24hAgo)
+            ->orderBy('c.datetime', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if(!$cours24hAgo) {
+            $cours24hAgo = $this->cryptoCoursRepository->createQueryBuilder('c')
+                ->where('c.crypto = :crypto')
+                ->setParameter('crypto', $cryptoId)
+                ->orderBy('c.datetime', 'ASC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+        }
+        return $cours24hAgo ? (float) $cours24hAgo->getCours() : null;
     }
 
     private function getPriceHistory(int $cryptoId): array
