@@ -7,6 +7,7 @@ use App\Entity\Devise;
 use App\Repository\CryptoRepository;
 use App\Repository\DeviseRepository;
 use App\Service\CryptoCoursService;
+use App\Service\CryptoDataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,23 +19,26 @@ class CryptoController extends AbstractController
     private $cryptoRepository;
     private $deviseRepository;
     private $entityManager;
+    private CryptoDataService $cryptoDataService;
 
     public function __construct(
         CryptoRepository $cryptoRepository,
         DeviseRepository $deviseRepository,
+        CryptoDataService $cryptoDataService,
         EntityManagerInterface $entityManager
     ) {
         $this->cryptoRepository = $cryptoRepository;
         $this->deviseRepository = $deviseRepository;
         $this->entityManager = $entityManager;
+        $this->cryptoDataService = $cryptoDataService;
     }
 
-    #[Route('/Random', name: 'random', methods: ['POST'])]
+    #[Route('/Random', name: 'random', methods: ['POST','GET'])]
     public function generateCryptoCours(Request $request): Response
     {
         // Récupérer l'ID de la devise envoyée par JSON
         $data = json_decode($request->getContent(), true);
-        $deviseId = $data['deviseId'] ?? null;  // Vérifier si la devise_id est bien présente
+        $deviseId = $data['deviseId'] ?? 1;  // Vérifier si la devise_id est bien présente
 
         if (!$deviseId) {
             return new Response('ID de la devise non spécifié.', Response::HTTP_BAD_REQUEST);
@@ -79,8 +83,8 @@ class CryptoController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $id = $data['id'] ?? null;
-
-        return new Response('Cours générés pour toutes les cryptos avec la devise spécifiée.', Response::HTTP_OK);
+        $cryptoDataList = $this->cryptoDataService->getCryptoDataList();
+        return $this->json($cryptoDataList);
     }
 
 }
