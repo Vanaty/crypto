@@ -12,7 +12,7 @@ INSERT INTO crypto (nom) VALUES
 -- Configuration des paires de devises
 INSERT INTO config_devise (devise_id, devise_base_id, valeur) VALUES 
 (1, 1, 1), -- 1 EUR = 4900 MGA
-(2, 1, 2),    -- 1 EUR = 1.10 USD
+(2, 1, 1.10),    -- 1 EUR = 1.10 USD
 (3, 1, 4500);
 
 CREATE VIEW crypto_transaction_view AS
