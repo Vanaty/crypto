@@ -31,6 +31,9 @@ class UserTransaction
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $datetime = null;
 
+    #[ORM\Column(type: 'decimal', precision: 18, scale: 8)]
+    private ?string $etat = null;
+
     // Getters et Setters
     public function getId(): ?int
     {
@@ -67,6 +70,16 @@ class UserTransaction
     public function setSortie(string $sortie): self
     {
         $this->sortie = $sortie;
+        return $this;
+    }
+    public function getEtat(): ?string
+    {
+        return $this->etat;
+    }
+
+    public function setEtat(string $etat): self
+    {
+        $this->etat = $etat;
         return $this;
     }
 

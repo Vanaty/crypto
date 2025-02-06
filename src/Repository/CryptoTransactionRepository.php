@@ -78,6 +78,55 @@ class CryptoTransactionRepository extends ServiceEntityRepository
         $entityManager->flush();
         return $transaction->getId();
     }
+public function findByFilters(?\DateTimeInterface $dateTimemax,?\DateTimeInterface $dateTimemin, ?int $cryptoId)
+{
+    // Récupérer l'EntityManager
+    $entityManager = $this->getEntityManager();
+
+    // Créer la base de la requête SQL
+    $sql = "SELECT * 
+            FROM crypto_transaction_view t
+            WHERE 1=1"; // Remplacez 'crypto_transaction_view' par le nom réel de votre vue
+
+    // Ajoutez un filtre pour la date/heure si nécessaire
+    if ($dateTimemin && $dateTimemax) {
+        $sql .= " AND t.datetime >= :dateTimemin  AND t.datetime <= :dateTimemax";
+    }
+
+    // Ajoutez un filtre pour la crypto si nécessaire
+    if ($cryptoId) {
+        $sql .= " AND t.crypto_id = :cryptoId";
+    }
+
+    // Préparez la requête SQL native
+    $query = $entityManager->getConnection()->prepare($sql);
+
+    // Construire les paramètres de la requête
+    $params = [];
+
+    if ($dateTimemax) {
+        // Formater le DateTime en chaîne
+        $params['dateTimemax'] = $dateTimemax->format('Y-m-d H:i:s');
+    }
+    if ($dateTimemin) {
+        // Formater le DateTime en chaîne
+        $params['dateTimemin'] = $dateTimemin->format('Y-m-d H:i:s');
+    }
+
+    if ($cryptoId) {
+        $params['cryptoId'] = $cryptoId;
+    }
+
+    // Exécuter la requête avec les paramètres
+    $result = $query->executeQuery($params);
+
+    // Récupérer et retourner les résultats sous forme de tableau associatif
+    return $result->fetchAllAssociative();
+}
+
+
+    
+
     public function findByUserIdFromView(int $idUser): array
     {
         $entityManager = $this->getEntityManager();
@@ -91,6 +140,22 @@ class CryptoTransactionRepository extends ServiceEntityRepository
         // Exécuter la requête SQL
         $statement = $entityManager->getConnection()->prepare($sql);
         $result = $statement->executeQuery(['idUser' => $idUser]);
+
+        // Retourner les résultats sous forme de tableau
+        return $result->fetchAllAssociative();
+    }
+    public function findAllView(): array
+    {
+        $entityManager = $this->getEntityManager();
+
+        // Requête SQL brute pour interroger la vue
+        $sql = '
+            SELECT *
+            FROM crypto_transaction_view
+        ';
+        // Exécuter la requête SQL
+        $statement = $entityManager->getConnection()->prepare($sql);
+        $result = $statement->executeQuery();
 
         // Retourner les résultats sous forme de tableau
         return $result->fetchAllAssociative();

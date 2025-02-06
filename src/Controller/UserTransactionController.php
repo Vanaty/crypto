@@ -34,7 +34,7 @@ class UserTransactionController extends AbstractController
         $this->userTransactionRepository = $userTransactionRepository;
     }
 
-    #[Route('/user/transaction', name: 'UserTransaction', methods: ['POST'])]
+    #[Route('/UserTransaction', name: 'UserTransaction', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -42,6 +42,7 @@ class UserTransactionController extends AbstractController
         $userTransaction->setIdUser($data['userId']);
         $userTransaction->setEntre($data['entre']);
         $userTransaction->setSortie($data['sortie']);
+        $userTransaction->setEtat(1);
         $userTransaction->setDatetime((new \DateTime())->setTimestamp($data['timestamp']/1000));
         $devise = $this->entityManager->getRepository(Devise::class)->find($data['deviseId']);
         if (!$devise) {
@@ -79,4 +80,6 @@ class UserTransactionController extends AbstractController
         $configDevise = $this->entityManager->getRepository(ConfigDevise::class)->findBy(['devise' => $data['idDevise']],null,1,null);
         return new JsonResponse(['compte' => $devise->transformationAutre($configDevise[0]->getValeur(),$balance)], 201);
     }
+    
+
 }

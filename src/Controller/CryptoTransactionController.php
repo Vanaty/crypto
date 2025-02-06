@@ -21,7 +21,7 @@ class CryptoTransactionController extends AbstractController
     ) {
         $this->entityManager = $entityManager;
     }
-    #[Route('/CryptoTransaction', name: 'achatvente', methods: ['POST'])]
+    #[Route('/CryptoTransaction', name: 'achatvente1', methods: ['POST'])]
     public function createTransaction(
         Request $request,
         CryptoTransactionRepository $cryptoTransactionRepository,
@@ -102,10 +102,14 @@ class CryptoTransactionController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $idUser = $data['userId'];
         if (!isset($data['userId'])) {
-            return new JsonResponse(['error' => 'Données manquantes'], 400);
+            $cours = $this->entityManager->getRepository( CryptoTransaction::class)->findAllView();        
+            return new JsonResponse(['message' => 'liste obtenu','data'=>$cours], 200);    
         }
-        $cours = $this->entityManager->getRepository( CryptoTransaction::class)->findByUserIdFromView($idUser);        
-        return new JsonResponse(['message' => 'liste obtenu','data'=>$cours], 200);
+        else{
+            $cours = $this->entityManager->getRepository( CryptoTransaction::class)->findByUserIdFromView($idUser);        
+            return new JsonResponse(['message' => 'liste obtenu','data'=>$cours], 200);
+        }
+        
     }
     
 }

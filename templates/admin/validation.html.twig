@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Transactions Crypto{% endblock %}
+
+{% block body %}
+    <div class="main-content">
+        <h2>Liste des Dépôts et Retraits</h2>
+    <form method="get" action="{{path('filtreValidation')}}" class="filter-form">
+            <label for="date">DateMin :</label>
+            <input type="date" id="date" name="datemin">
+
+            <label for="heure">HeureMin (HH:MM:SS) :</label>
+            <input type="text" id="heure" name="heuremin" placeholder="12:30:00">
+
+            <label for="date">DateMax :</label>
+            <input type="date" id="date" name="datemax">
+
+            <label for="heure">HeureMax (HH:MM:SS) :</label>
+            <input type="text" id="heure" name="heuremax" placeholder="12:30:00">
+
+        <button type="submit" class="btn-valider">Filtrer</button>
+    </form>
+        <table class="crypto-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Utilisateur ID</th>
+                    <th>Entrée</th>
+                    <th>Sortie</th>
+                    <th>Date</th>
+                    <th>État</th>
+                    <th>Type</th> <!-- Nouvelle colonne Type -->
+                    <th>Action</th> <!-- Nouvelle colonne Action -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.id }}</td>
+                        <td><a href="{{ path('validationByid', { 'id': transaction.id_user }) }}" class="btn-valider">USER00{{transaction.id_user}}</a></td>
+                        <td>{{ transaction.entre }}</td>
+                        <td>{{ transaction.sortie }}</td>
+                        <td>{{ transaction.datetime|date('Y-m-d H:i:s') }}</td>
+                        <td>{{ transaction.etat }}</td>
+                        <td>
+                            {% if transaction.entre != 0 %}
+                                Dépôt
+                            {% else %}
+                                Retrait
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if transaction.etat != 11 %}
+                                <a href="{{ path('validationTransaction', { 'id': transaction.id }) }}" data-page class="btn-valider">Valider</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8">Aucune transaction trouvée.</td> <!-- Mise à jour du colspan -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    
+{% endblock %}

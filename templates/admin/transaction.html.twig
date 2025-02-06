@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Transactions Crypto{% endblock %}
+
+{% block body %}
+    <div class="main-content">
+        <h2>Liste des Transactions Crypto</h2>
+    <form method="get" action="{{ path('filtreTransaction') }}" class="filter-form">
+            <label for="date">DateMin :</label>
+            <input type="date" id="date" name="datemin">
+
+            <label for="heure">HeureMin (HH:MM:SS) :</label>
+            <input type="text" id="heure" name="heuremin" placeholder="12:30:00">
+
+            <label for="date">DateMax :</label>
+            <input type="date" id="date" name="datemax">
+
+            <label for="heure">HeureMax (HH:MM:SS) :</label>
+            <input type="text" id="heure" name="heuremax" placeholder="12:30:00">
+
+            <label for="crypto">Cryptomonnaie :</label>
+            <select id="crypto" name="crypto">
+                <option value="">Choisir une crypto</option>
+                {% for crypto in cryptos %}
+                    <option value="{{ crypto.id }}">{{ crypto.nom }}</option>
+                {% endfor %}
+            </select>
+        <button type="submit" class="btn-valider">Filtrer</button>
+    </form>
+        <table class="crypto-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Crypto ID</th>
+                    <th>Devise ID</th>
+                    <th>Utilisateur ID</th>
+                    <th>Entrée</th>
+                    <th>Sortie</th>
+                    <th>Cours Crypto</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.id }}</td>
+                        <td>{{ transaction.crypto_id }}</td>
+                        <td>{{ transaction.devise_id }}</td>
+                        <td><a href="{{ path('transactionByid', { 'id': transaction.id_user }) }}" class="btn-valider">USER00{{transaction.id_user}}</a></td>
+                        <td>{{ transaction.entre }}</td>
+                        <td>{{ transaction.sortie }}</td>
+                        <td>{{ transaction.crypto_cours }}</td>
+                        <td>{{ transaction.datetime|date('Y-m-d H:i:s') }}</td>
+                        <td>{{ transaction.type }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="9">Aucune transaction trouvée.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
