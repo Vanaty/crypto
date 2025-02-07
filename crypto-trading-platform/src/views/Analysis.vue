@@ -139,7 +139,7 @@
   };
   
   const getCryptoName = (cryptoId: string) => 
-    cryptos.value.find(c => c.id === cryptoId)?.name || cryptoId;
+    cryptos.value.find(c => c.id == cryptoId)?.name || cryptoId;
   
   const formatResult = (value: number) => {
     if (analysisType.value === 'stddev' || analysisType.value === 'mean') {

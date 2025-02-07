@@ -59,7 +59,7 @@ class AdminController extends AbstractController
     #[Route('/validation', name: 'admin_liste_user_depot_retrait', methods: ['GET'])]
     public function getValidation(Request $request): Response
     {
-        $transactions = $this->entityManager->getRepository(UserTransaction::class)->findAll();
+        $transactions = $this->entityManager->getRepository(UserTransaction::class)->getAll();
         $crypto = $this->entityManager->getRepository(Crypto::class)->findAll();
         return $this->render('admin/dashboard.html.twig', [
             'transactions' => $transactions,

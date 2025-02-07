@@ -47,6 +47,6 @@ const sortedTransactions = computed(() =>
   )
 );
 
-const getCryptoName = (cryptoId: string) => 
-  cryptos.value.find(c => c.id === cryptoId)?.name || cryptoId;
+const getCryptoName = (cryptoId: string | number) =>
+  cryptos.value.find(c => c.id == cryptoId)?.name || cryptoId;
 </script>

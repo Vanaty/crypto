@@ -21,10 +21,10 @@ class UserTransactionRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT sum(entre) - sum(sortie) AS balance
                 FROM user_transaction 
-                WHERE id_user = :idUser";
+                WHERE id_user = :idUser AND etat= :etat";
 
         $stmt = $conn->prepare($sql);
-        $result = $stmt->execute([ 'idUser' => $idUser]);
+        $result = $stmt->execute([ 'idUser' => $idUser,'etat' => 11]);
         return (float) $result->fetchOne();
     }
 
@@ -117,14 +117,14 @@ public function findByFilters(?\DateTimeInterface $dateTimemax,?\DateTimeInterfa
     // Récupérer et retourner les résultats sous forme de tableau associatif
     return $result->fetchAllAssociative();
 }
-public function findAll(): array
+public function getAll(): array
     {
         $entityManager = $this->getEntityManager();
 
         // Requête SQL brute pour interroger la vue
         $sql = '
             SELECT *
-            FROM user_transaction
+            FROM user_transaction ORDER BY datetime DESC
         ';
         // Exécuter la requête SQL
         $statement = $entityManager->getConnection()->prepare($sql);

@@ -92,24 +92,31 @@ class CryptoTransactionController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-    #[Route('/ListeCryptoTransaction', name: 'achatvente', methods: ['GET'])]
+    #[Route('/ListeCryptoTransaction', name: 'achatventecrypto', methods: ['GET'])]
     public function getTransaction(
-        Request $request,
-        CryptoTransactionRepository $cryptoTransactionRepository,
-        EntityManagerInterface $entityManager
+        Request $request
     ): JsonResponse {
         $statut = 200;
-        $data = json_decode($request->getContent(), true);
-        $idUser = $data['userId'];
-        if (!isset($data['userId'])) {
+        $idUser = $request->get("userId",null);
+        if (!isset($idUser)) {
             $cours = $this->entityManager->getRepository( CryptoTransaction::class)->findAllView();        
-            return new JsonResponse(['message' => 'liste obtenu','data'=>$cours], 200);    
+            return new JsonResponse($cours, 200);    
         }
         else{
             $cours = $this->entityManager->getRepository( CryptoTransaction::class)->findByUserIdFromView($idUser);        
-            return new JsonResponse(['message' => 'liste obtenu','data'=>$cours], 200);
+            return new JsonResponse($cours, 200);
         }
         
     }
-    
+    #[Route('/user/{idUser}/cryptos', name: 'get_cryptos_amount', methods: ['GET'])]
+    public function getCryptoAmount(CryptoTransactionRepository $ctr,EntityManagerInterface $entityManager,int $idUser): JsonResponse
+    {
+        $transaction = $ctr->getUserCrypto($entityManager,$idUser);
+
+        if (!$transaction) {
+            return new JsonResponse(['error' => 'Transaction not found'], 404);
+        }
+
+        return new JsonResponse($transaction);
+    }
 }

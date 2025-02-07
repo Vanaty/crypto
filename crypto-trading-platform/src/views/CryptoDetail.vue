@@ -9,6 +9,12 @@
         </div>
 
         <div class="row g-4">
+          <div class="col-12">
+            <div class="p-3 border rounded bg-light text-center">
+              <h5 class="text-muted">Your Balance</h5>
+              <p class="display-6">{{ formatCurrency(balance.usdBalance) }}</p>
+            </div>
+          </div>
           <div class="col-12 col-md-6">
             <div class="p-3 border rounded bg-light">
               <p class="display-6">${{ crypto.currentPrice.toFixed(2) }}</p>
@@ -23,9 +29,11 @@
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title">Trade</h5>
-                <div class="mb-3">
+                <div class="mb-3 d-flex">
+                  <button class="btn btn-outline-secondary me-2" @click="setMinTrade">Min</button>
                   <input type="number" v-model="amount" class="form-control" 
                          placeholder="Amount to trade" />
+                  <button class="btn btn-outline-secondary ms-2" @click="setMaxTrade">Max</button>
                 </div>
                 <div class="d-grid gap-2 d-md-flex">
                   <button @click="executeTrade('buy')" 
@@ -51,14 +59,19 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useCryptoStore } from '../stores/crypto';
+import { useWalletStore } from '../stores/wallet';
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { useCurrencyStore } from '../stores/currency';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const route = useRoute();
-const store = useCryptoStore();
-const { cryptos } = storeToRefs(store);
+const cryptoStore = useCryptoStore();
+const walletStore = useWalletStore();
+const currencyStore = useCurrencyStore();
+const { cryptos } = storeToRefs(cryptoStore);
+const { balance } = storeToRefs(walletStore);
 const amount = ref(0);
 
 const crypto = computed(() => 
@@ -72,31 +85,44 @@ const chartData = computed(() => {
       new Date(entry.date).toLocaleDateString('en-US', { 
         hour: '2-digit', 
         minute: '2-digit' 
-      }) // Formater les dates
+      })
     ),
     datasets: [{
       label: 'Price',
-      data: history.map(entry => entry.price), // Utiliser uniquement les prix
+      data: history.map(entry => entry.price),
       borderColor: '#198754',
       tension: 0.1
     }]
   };
 });
 
-
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false
 };
 
+const formatCurrency = (amount: number) => {
+  return currencyStore.format(amount);
+};
+
+const setMinTrade = () => {
+  amount.value = 0.01; // Set minimum trade amount
+};
+
+const setMaxTrade = () => {
+  if (crypto.value) {
+    amount.value = parseFloat((balance.value.usdBalance / crypto.value.currentPrice).toFixed(6));
+  }
+};
+
 const executeTrade = (type: 'buy' | 'sell') => {
   if (!crypto.value || amount.value <= 0) return;
   
-  store.addTransaction({
+  cryptoStore.addTransaction({
     userId: 'user1',
     cryptoId: crypto.value.id,
     type,
-    amount: amount.value,
+    amount: parseFloat(amount.value.toFixed(6)),
     price: crypto.value.currentPrice,
     timestamp: new Date()
   });

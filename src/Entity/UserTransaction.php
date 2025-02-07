@@ -103,4 +103,18 @@ class UserTransaction
         $this->datetime = $datetime;
         return $this;
     }
+
+
+    public function toTransactionJson(): array
+    {
+        return [
+            'id' => (string) $this->getId(),
+            'userId' => $this->getIdUser(),
+            'deviseId' => $this->getDevise() ? (string) $this->getDevise()->getId() : null,
+            'type' => $this->getEntre() > 0 ? 'deposit' : 'withdraw',
+            'amount' => (float) ($this->getEntre() ?: $this->getSortie()),
+            'etat' => (int) $this->getEtat(),
+            'timestamp' => $this->getDatetime()->getTimestamp()*1000,
+        ];
+    }
 }

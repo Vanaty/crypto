@@ -13,10 +13,10 @@ export interface CryptoData {
 
 export interface Transaction {
   id: string;
-  userId: string;
-  cryptoId: string;
+  userId: string | number;
+  cryptoId: string | number;
   type: 'buy' | 'sell';
   amount: number;
   price: number;
-  timestamp: Date;
+  timestamp: Date | number;
 }

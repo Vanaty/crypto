@@ -7,11 +7,10 @@ export interface WalletBalance {
 
 export interface Transaction {
     id: string;
-    userId: string;
-    cryptoId: string;
-    type: 'buy' | 'sell';
+    userId: string | undefined | number;
+    deviseId: string | undefined | number;
+    type: 'deposit' | 'withdraw';
     amount: number;
-    price: number;
-    total: number;
-    timestamp: Date;
+    etat: number;
+    timestamp: Date | number;
 }

@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\UserTransactionRepository;
 use App\Entity\UserTransaction;
 use App\Entity\Devise;
+use App\Repository\CryptoTransactionRepository;
 use PSpell\Config;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -61,12 +62,12 @@ class UserTransactionController extends AbstractController
         return new JsonResponse([
             'message' => 'UserTransaction created successfully',
             'id' => $userTransaction->getId(),
-        ], 201);
+        ], 200);
     }
 
     
     #[Route('/user/compte', name: 'userCompte', methods: ['GET'])]
-    public function getUserBalance(Request $request, UserTransactionRepository $userTransactionRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function getUserBalance(Request $request, UserTransactionRepository $userTransactionRepository,CryptoTransactionRepository $ctr, EntityManagerInterface $entityManager): JsonResponse
     {
         $idUser = $request->query->get('userId');
         $idDevise = $request->query->get('idDevise');
@@ -88,9 +89,32 @@ class UserTransactionController extends AbstractController
         // Transformation du solde
         $devise = new Devise();
         $transformedBalance = $devise->transformationAutre($configDevise->getValeur(), $balance);
+        $cryptos = $ctr->getUserCrypto($entityManager,$idUser);
 
-        return new JsonResponse(['compte' => $transformedBalance], JsonResponse::HTTP_OK);
+        return new JsonResponse(['usdBalance' => $transformedBalance, "cryptoHoldings" => $cryptos], JsonResponse::HTTP_OK);
     }
     
+    #[Route('/user/{id}/transactions', name: 'userTransactions', methods: ['GET'])]
+    public function getUserTransactions(Request $request, int $id): JsonResponse
+    {
+        $datas =  $this->userTransactionRepository->findBy(["idUser"=>$id]);
+        $reps = [];
+        foreach ($datas as $trs) {
+            $reps[] = $trs->toTransactionJson();
+        }
+        return new JsonResponse($reps, JsonResponse::HTTP_OK);
+    }
 
+
+    #[Route('/transaction/{id}', name: 'get_transaction', methods: ['GET'])]
+    public function getTransaction(UserTransactionRepository $repo, int $id): JsonResponse
+    {
+        $transaction = $repo->find($id);
+        
+        if (!$transaction) {
+            return new JsonResponse(['error' => 'Transaction not found'], 404);
+        }
+
+        return new JsonResponse($transaction->toTransactionJson());
+    }
 }

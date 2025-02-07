@@ -1,19 +1,23 @@
-import { defineStore } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { ref, computed, onMounted } from 'vue';
 import type { WalletBalance, Transaction } from '../types/wallet';
 import { useCryptoStore } from './crypto';
 import api from '../services/api';
 import { useAuthStore } from './auth';
+import { useCurrencyStore } from './currency';
 
 export const useWalletStore = defineStore('wallet', () => {
   const balance = ref<WalletBalance>({
-    usdBalance: 1, // Start with $10,000 EUR
+    usdBalance: 0, // Start with $10,000 EUR
     cryptoHoldings: {}
   });
 
   const { user } = useAuthStore();
+  const cryptoStore = useCryptoStore();
+  const { transactions } = storeToRefs(cryptoStore);
+  const currency = useCurrencyStore();
 
-  const transactions = ref<Transaction[]>([]);
+  const transactionsMoney = ref<Transaction[]>([]);
 
   const totalPortfolioValue = computed(() => {
     const { cryptos } = useCryptoStore();
@@ -41,7 +45,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
 
 
-  const executeTrade = (cryptoId: string, type: 'buy' | 'sell', amount: number, price: number) => {
+  const executeTrade  = async (cryptoId: string, type: 'buy' | 'sell', amount: number, price: number) => {
     const total = amount * price;
 
     if (!canExecuteTrade(cryptoId, type, amount, price)) {
@@ -58,37 +62,82 @@ export const useWalletStore = defineStore('wallet', () => {
       : currentHolding - amount;
 
     // Record transaction
-    const transaction: Transaction = {
+    const transaction = {
       id: Math.random().toString(36).substr(2, 9),
-      userId: 'user1', // Replace with actual user ID
+      userId: user?.id || "", // Replace with actual user ID
       cryptoId,
       type,
       amount,
       price,
       total,
-      timestamp: new Date()
+      timestamp: new Date().getTime()
     };
 
-    transactions.value.push(transaction);
+    const response = await api.apiClient.post('/CryptoTransaction', transaction);
+    if (response.status !== 200) {
+      throw new Error(`Erreur ${response.status}: Échec de l'envoi`);
+    } else {
+      transactions.value.push(transaction);
+    }
   };
 
   const deposit = async (amount: number) => {
     try {
       const payload = {
-        userId: 123,
-        idDevise: 1
+        userId: user?.id,
+        deviseId: currency.getDeviseSelected()?.id,
+        entre: amount,
+        sortie: 0,
+        timestamp: new Date().getTime()
       };
+
+      console.log(payload);
   
-      const response = await api.apiClient.post('/user/compte', payload, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-  
+      const response = await api.apiClient.post('/UserTransaction', payload);
       if (response.status !== 200) {
         throw new Error(`Erreur ${response.status}: Échec de l'envoi`);
       }
+      const trs: Transaction = {
+        id: "",
+        userId: payload.userId,
+        deviseId: payload.deviseId,
+        amount: payload.entre,
+        type: 'deposit',
+        etat: 1,
+        timestamp: new Date(payload.timestamp)
+      };
+      transactionsMoney.value.push(trs);
+
+      console.log('✅ Réponse reçue:', response.data);
+    } catch (error) {
+      console.error('❌ Erreur API:', error);
+    }
+  };
+
+  const withdraw = async (amount: number) => {
+    try {
+      const payload = {
+        userId: user?.id,
+        deviseId: currency.getDeviseSelected()?.id,
+        entre: 0,
+        sortie: amount,
+        timestamp: new Date().getTime()
+      };
   
+      const response = await api.apiClient.post('/UserTransaction', payload);
+      if (response.status !== 200) {
+        throw new Error(`Erreur ${response.status}: Échec de l'envoi`);
+      }
+      const trs: Transaction = {
+        id: "",
+        userId: payload.userId,
+        deviseId: payload.deviseId,
+        amount: payload.sortie,
+        etat: 1,
+        type: 'withdraw',
+        timestamp: new Date(payload.timestamp)
+      };
+      transactionsMoney.value.push(trs);
       console.log('✅ Réponse reçue:', response.data);
     } catch (error) {
       console.error('❌ Erreur API:', error);
@@ -101,23 +150,42 @@ export const useWalletStore = defineStore('wallet', () => {
       if (response.status !== 200) {
         throw new Error(`Erreur ${response.status}: Impossible de charger le compte`);
       }
-      balance.value.usdBalance = response.data.compte;
+      balance.value = response.data;
+    } catch (error) {
+      console.error('❌ Erreur API:', error);
+    }
+  };
+
+  const fetchHistoTrs = async () => {
+    try {
+      const response = await api.apiClient.get(`user/${user?.id}/transactions`);
+      if (response.status !== 200) {
+        throw new Error(`Erreur ${response.status}: Impossible de charger le compte`);
+      }
+      transactionsMoney.value = response.data;
     } catch (error) {
       console.error('❌ Erreur API:', error);
     }
   };
     
   
-  
+  setInterval(() => {
+    fetchCompte();
+    fetchHistoTrs();
+  },10000);
+
   onMounted(() => {
+    fetchHistoTrs();
     fetchCompte();
   });
   return {
     balance,
     transactions,
+    transactionsMoney,
     totalPortfolioValue,
     canExecuteTrade,
     executeTrade,
-    deposit
+    deposit,
+    withdraw
   };
 });

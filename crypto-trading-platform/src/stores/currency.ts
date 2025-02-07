@@ -32,6 +32,10 @@ export const useCurrencyStore = defineStore('currency', () => {
     return `${symbols[currency]}${value.toFixed(currency === 'MGA' ? 0 : 2)}`;
   };
 
+  const getDeviseSelected = () => {
+    return devises.value?.find(x => x.nom === selectedCurrency.value);
+  };
+
   const fetchCurrency = async () => {
     try {
       const response = await api.apiClient.get<CurrencyData[]>("/devises");
@@ -67,6 +71,7 @@ export const useCurrencyStore = defineStore('currency', () => {
     rates,
     symbols,
     convert,
-    format
+    format,
+    getDeviseSelected
   };
 });

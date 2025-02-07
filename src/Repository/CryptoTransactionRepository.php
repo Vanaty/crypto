@@ -133,16 +133,24 @@ public function findByFilters(?\DateTimeInterface $dateTimemax,?\DateTimeInterfa
 
         // Requête SQL brute pour interroger la vue
         $sql = '
-            SELECT *
+            SELECT crypto_id cryptoId,id_user userId, (entre - sortie) amount,crypto_cours as price,datetime timestamp,type 
             FROM crypto_transaction_view
             WHERE id_user = :idUser
+            ORDER BY datetime DESC
         ';
         // Exécuter la requête SQL
         $statement = $entityManager->getConnection()->prepare($sql);
         $result = $statement->executeQuery(['idUser' => $idUser]);
 
         // Retourner les résultats sous forme de tableau
-        return $result->fetchAllAssociative();
+        $responses = $result->fetchAllAssociative() ;
+        for ($i=0; $i < count($responses); $i++) { 
+            $responses[$i]["price"] = floatval($responses[$i]["price"]);
+            $responses[$i]["amount"] = floatval($responses[$i]["amount"]);
+            $responses[$i]["userId"] = $responses[$i]["userid"];
+            $responses[$i]["cryptoId"] = $responses[$i]["cryptoid"];
+        }
+        return $responses;
     }
     public function findAllView(): array
     {
@@ -161,5 +169,32 @@ public function findByFilters(?\DateTimeInterface $dateTimemax,?\DateTimeInterfa
         return $result->fetchAllAssociative();
     }
 
+    public function getUserCrypto( EntityManagerInterface $entityManager,int $idUser) {
+        $entityManager = $this->getEntityManager();
 
+        // Requête SQL brute pour interroger la vue
+        $sql = '
+            SELECT c.id as id_crypto,COALESCE(sum(entre)  - sum(sortie),0) amount
+            FROM crypto c
+            LEFT JOIN crypto_transaction ct ON c.id=ct.crypto_id
+            WHERE ct.id_user = :idUser
+            GROUP BY c.id
+        ';
+
+        $statement = $entityManager->getConnection()->prepare($sql);
+        $result = $statement->executeQuery(["idUser" => $idUser]);
+        $res = $result->fetchAllAssociative();
+        $cryptos = $entityManager->getRepository(Crypto::class)->findAll();
+        $rep = [];
+        foreach ($cryptos as $crypto) {
+            $rep[$crypto->getId()]=0;
+        }
+
+        if ($res) {
+            foreach ($res as $value) {
+                $rep[$value["id_crypto"]] =  floatval($value["amount"]);
+            }
+        }
+        return $rep;
+    }
 }
