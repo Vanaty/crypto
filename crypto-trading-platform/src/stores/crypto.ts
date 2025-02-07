@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, onMounted } from 'vue';
 import type { CryptoData, Transaction } from '../types/crypto';
 
-const API_URL = new URL(import.meta.env.VITE_API_CRYPTO_URL).origin; // Replace with your actual API URL
+const API_URL = new URL(import.meta.env.VITE_API_CRYPTO_URL).origin;
 
 export const useCryptoStore = defineStore('crypto', () => {
   const cryptos = ref<CryptoData[]>([]);

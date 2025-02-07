@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Entity\Crypto;
 use App\Entity\CryptoCours;
 use App\Entity\Devise;
+use App\Repository\ConfigDeviseRepository;
 use App\Repository\CryptoRepository;
 use App\Repository\DeviseRepository;
 use App\Service\CryptoCoursService;
@@ -18,12 +19,14 @@ class CryptoController extends AbstractController
 {
     private $cryptoRepository;
     private $deviseRepository;
+    private ConfigDeviseRepository $configDeviseRepository;
     private $entityManager;
     private CryptoDataService $cryptoDataService;
 
     public function __construct(
         CryptoRepository $cryptoRepository,
         DeviseRepository $deviseRepository,
+        ConfigDeviseRepository $configDeviseRepository,
         CryptoDataService $cryptoDataService,
         EntityManagerInterface $entityManager
     ) {
@@ -31,6 +34,7 @@ class CryptoController extends AbstractController
         $this->deviseRepository = $deviseRepository;
         $this->entityManager = $entityManager;
         $this->cryptoDataService = $cryptoDataService;
+        $this->configDeviseRepository = $configDeviseRepository;
     }
 
     #[Route('/Random', name: 'random', methods: ['POST','GET'])]
@@ -84,6 +88,15 @@ class CryptoController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $id = $data['id'] ?? null;
         $cryptoDataList = $this->cryptoDataService->getCryptoDataList();
+        return $this->json($cryptoDataList);
+    }
+
+    #[Route('/devises', name: 'getAllDevises', methods: ['GET'])]
+    public function getAllDevises(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $id = $data['id'] ?? null;
+        $cryptoDataList = $this->configDeviseRepository->getAll();
         return $this->json($cryptoDataList);
     }
 

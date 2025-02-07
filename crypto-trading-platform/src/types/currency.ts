@@ -11,3 +11,9 @@ export interface CurrencySymbol {
   EUR: string;
   MGA: string;
 }
+
+export interface CurrencyData {
+  id: number;
+  nom: string;
+  valeur: number;
+}

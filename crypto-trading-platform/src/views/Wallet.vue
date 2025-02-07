@@ -32,6 +32,7 @@
                   <div class="border rounded p-3">
                     <h3 class="h6 text-muted mb-2">Balance</h3>
                     <p class="h3 mb-0">{{ formatCurrency(balance.usdBalance) }}</p>
+                    <button class="btn btn-sm btn-outline-success mt-2" @click="openDepositModal">Deposit Funds</button>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -40,6 +41,35 @@
                     <p class="h3 mb-0">{{ formatCurrency(totalPortfolioValue) }}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Deposit Modal -->
+        <div class="modal fade" id="depositModal" tabindex="-1" ref="depositModalRef">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Deposit Funds</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <form @submit.prevent="depositFunds">
+                  <div class="mb-3">
+                    <label class="form-label">Amount</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      v-model="depositAmount"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-success">Deposit</button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -168,9 +198,12 @@
   
   const modalRef = ref<HTMLElement | null>(null);
   const modal = ref<Modal | null>(null);
+  const depositModalRef = ref<HTMLElement | null>(null);
+  const depositModal = ref<Modal | null>(null);
   const selectedCryptoId = ref<string | null>(null);
   const tradeType = ref<'buy' | 'sell'>('buy');
   const tradeAmount = ref(0);
+  const depositAmount = ref(0);
   
   const selectedCrypto = computed(() => 
     cryptos.value.find(c => c.id === selectedCryptoId.value)
@@ -218,6 +251,26 @@
       modal.value?.hide();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Trade failed');
+    }
+  };
+
+
+  const openDepositModal = () => {
+    depositAmount.value = 0;
+    if (!depositModal.value && depositModalRef.value) {
+      depositModal.value = new Modal(depositModalRef.value);
+    }
+    depositModal.value?.show();
+  };
+  
+  const depositFunds = async () => {
+    if (depositAmount.value <= 0) return;
+  
+    try {
+      await walletStore.deposit(depositAmount.value);
+      depositModal.value?.hide();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Deposit failed');
     }
   };
   </script>

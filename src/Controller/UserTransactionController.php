@@ -64,21 +64,32 @@ class UserTransactionController extends AbstractController
         ], 201);
     }
 
+    
     #[Route('/user/compte', name: 'userCompte', methods: ['GET'])]
-    public function getUserBalance(Request $request): JsonResponse
+    public function getUserBalance(Request $request, UserTransactionRepository $userTransactionRepository, EntityManagerInterface $entityManager): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $idUser = $request->query->get('userId');
+        $idDevise = $request->query->get('idDevise');
 
-        $idUser =$data['userId'];
-        $idDevise =$data['idDevise'];
-        
-        if (!$idUser || !$idDevise) {
-            return new JsonResponse(['error' => 'Missing parameters'], 400);
+        if (empty($idUser) || empty($idDevise)) {
+            return new JsonResponse(['error' => 'Missing parameters'], JsonResponse::HTTP_BAD_REQUEST);
         }
+
+        // Récupération du solde utilisateur
+        $balance = $userTransactionRepository->calculateUserBalance($idUser);
+
+        // Récupération de la configuration de la devise
+        $configDevise = $entityManager->getRepository(ConfigDevise::class)->findOneBy(['devise' => $idDevise]);
+
+        if (!$configDevise) {
+            return new JsonResponse(['error' => 'Currency not found'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // Transformation du solde
         $devise = new Devise();
-        $balance = $this->userTransactionRepository->calculateUserBalance($idUser);
-        $configDevise = $this->entityManager->getRepository(ConfigDevise::class)->findBy(['devise' => $data['idDevise']],null,1,null);
-        return new JsonResponse(['compte' => $devise->transformationAutre($configDevise[0]->getValeur(),$balance)], 201);
+        $transformedBalance = $devise->transformationAutre($configDevise->getValeur(), $balance);
+
+        return new JsonResponse(['compte' => $transformedBalance], JsonResponse::HTTP_OK);
     }
     
 

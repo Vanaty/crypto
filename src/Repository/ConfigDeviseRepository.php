@@ -40,4 +40,16 @@ class ConfigDeviseRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function getAll(): array
+    {
+         $data = $this->createQueryBuilder('d')
+            ->getQuery()
+            ->getResult();
+        $reps = [];
+        foreach ($data as $devise) {
+            $reps[] = array("id"=>$devise->getDevise()->getId(),"nom"=>$devise->getDevise()->getNom(),"valeur"=>$devise->getValeur());
+        }
+        return $reps;
+    }
 }

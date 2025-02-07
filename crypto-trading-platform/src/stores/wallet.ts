@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import type { WalletBalance, Transaction } from '../types/wallet';
 import { useCryptoStore } from './crypto';
+import api from '../services/api';
+import { useAuthStore } from './auth';
 
 export const useWalletStore = defineStore('wallet', () => {
   const balance = ref<WalletBalance>({
-    usdBalance: 10000, // Start with $10,000 USD
+    usdBalance: 1, // Start with $10,000 EUR
     cryptoHoldings: {}
   });
+
+  const { user } = useAuthStore();
 
   const transactions = ref<Transaction[]>([]);
 
@@ -34,6 +38,8 @@ export const useWalletStore = defineStore('wallet', () => {
       return (balance.value.cryptoHoldings[cryptoId] || 0) >= amount;
     }
   };
+
+
 
   const executeTrade = (cryptoId: string, type: 'buy' | 'sell', amount: number, price: number) => {
     const total = amount * price;
@@ -66,11 +72,52 @@ export const useWalletStore = defineStore('wallet', () => {
     transactions.value.push(transaction);
   };
 
+  const deposit = async (amount: number) => {
+    try {
+      const payload = {
+        userId: 123,
+        idDevise: 1
+      };
+  
+      const response = await api.apiClient.post('/user/compte', payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      if (response.status !== 200) {
+        throw new Error(`Erreur ${response.status}: Échec de l'envoi`);
+      }
+  
+      console.log('✅ Réponse reçue:', response.data);
+    } catch (error) {
+      console.error('❌ Erreur API:', error);
+    }
+  };
+
+  const fetchCompte = async () => {
+    try {
+      const response = await api.apiClient.get(`user/compte?userId=${user?.id}&idDevise=1`);
+      if (response.status !== 200) {
+        throw new Error(`Erreur ${response.status}: Impossible de charger le compte`);
+      }
+      balance.value.usdBalance = response.data.compte;
+    } catch (error) {
+      console.error('❌ Erreur API:', error);
+    }
+  };
+    
+  
+  
+  onMounted(() => {
+    fetchCompte();
+  });
   return {
     balance,
     transactions,
     totalPortfolioValue,
     canExecuteTrade,
-    executeTrade
+    executeTrade,
+    deposit
   };
 });
