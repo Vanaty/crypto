@@ -17,7 +17,7 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="p-3 border rounded bg-light">
-              <p class="display-6">${{ crypto.currentPrice.toFixed(2) }}</p>
+              <p class="display-6">{{ formatCurrency(crypto.currentPrice) }}</p>
               <p :class="crypto.change24h >= 0 ? 'text-success' : 'text-danger'">
                 <i :class="crypto.change24h >= 0 ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
                 {{ Math.abs(crypto.change24h).toFixed(2) }}%
@@ -31,7 +31,8 @@
                 <h5 class="card-title">Trade</h5>
                 <div class="mb-3 d-flex">
                   <button class="btn btn-outline-secondary me-2" @click="setMinTrade">Min</button>
-                  <input type="number" v-model="amount" class="form-control" 
+                  <input type="number" v-model="amount" class="form-control"
+                         :max="getMaxTrade()"
                          placeholder="Amount to trade" />
                   <button class="btn btn-outline-secondary ms-2" @click="setMaxTrade">Max</button>
                 </div>
@@ -114,19 +115,25 @@ const setMaxTrade = () => {
     amount.value = parseFloat((balance.value.usdBalance / crypto.value.currentPrice).toFixed(6));
   }
 };
-
-const executeTrade = (type: 'buy' | 'sell') => {
-  if (!crypto.value || amount.value <= 0) return;
+const getMaxTrade = () => {
+  if (crypto.value) {
+    return parseFloat((balance.value.usdBalance / crypto.value.currentPrice).toFixed(6));    
+  }
+  return 0;
+}
+const executeTrade = async (type: 'buy' | 'sell') => {
+  if (!crypto.value || amount.value <= 0 || amount.value > getMaxTrade()) return;
   
-  cryptoStore.addTransaction({
-    userId: 'user1',
-    cryptoId: crypto.value.id,
-    type,
-    amount: parseFloat(amount.value.toFixed(6)),
-    price: crypto.value.currentPrice,
-    timestamp: new Date()
-  });
-
+  try {
+    walletStore.executeTrade(
+      crypto.value.id,
+      type,
+      parseFloat(amount.value.toFixed(6)),
+      crypto.value.currentPrice
+    );
+  } catch (error) {
+    alert(error instanceof Error ? error.message : 'Trade failed');
+  }
   amount.value = 0;
 };
 </script>
