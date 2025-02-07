@@ -16,7 +16,7 @@ use PSpell\Config;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class UserTransactionController extends AbstractController
+class UserTransactionController extends BaseController
 {
     private $entityManager;
     private $serializer;
@@ -29,6 +29,7 @@ class UserTransactionController extends AbstractController
         ValidatorInterface $validator,
         UserTransactionRepository $userTransactionRepository
     ) {
+        parent::__construct($entityManager);
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->validator = $validator;
@@ -38,6 +39,7 @@ class UserTransactionController extends AbstractController
     #[Route('/UserTransaction', name: 'UserTransaction', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $token = $this->verifyToken($request);
         $data = json_decode($request->getContent(), true);
         $userTransaction = new UserTransaction();
         $userTransaction->setIdUser($data['userId']);
@@ -69,6 +71,7 @@ class UserTransactionController extends AbstractController
     #[Route('/user/compte', name: 'userCompte', methods: ['GET'])]
     public function getUserBalance(Request $request, UserTransactionRepository $userTransactionRepository,CryptoTransactionRepository $ctr, EntityManagerInterface $entityManager): JsonResponse
     {
+        $token = $this->verifyToken($request);
         $idUser = $request->query->get('userId');
         $idDevise = $request->query->get('idDevise');
 
@@ -97,6 +100,7 @@ class UserTransactionController extends AbstractController
     #[Route('/user/{id}/transactions', name: 'userTransactions', methods: ['GET'])]
     public function getUserTransactions(Request $request, int $id): JsonResponse
     {
+        $token = $this->verifyToken($request);
         $datas =  $this->userTransactionRepository->findBy(["idUser"=>$id]);
         $reps = [];
         foreach ($datas as $trs) {
@@ -107,8 +111,9 @@ class UserTransactionController extends AbstractController
 
 
     #[Route('/transaction/{id}', name: 'get_transaction', methods: ['GET'])]
-    public function getTransaction(UserTransactionRepository $repo, int $id): JsonResponse
+    public function getTransaction(UserTransactionRepository $repo, int $id,Request $request): JsonResponse
     {
+        $token = $this->verifyToken($request);
         $transaction = $repo->find($id);
         
         if (!$transaction) {

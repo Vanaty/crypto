@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class CryptoController extends AbstractController
+class CryptoController extends BaseController
 {
     private $cryptoRepository;
     private $deviseRepository;
@@ -30,6 +30,7 @@ class CryptoController extends AbstractController
         CryptoDataService $cryptoDataService,
         EntityManagerInterface $entityManager
     ) {
+        parent::__construct($entityManager);
         $this->cryptoRepository = $cryptoRepository;
         $this->deviseRepository = $deviseRepository;
         $this->entityManager = $entityManager;
@@ -85,6 +86,7 @@ class CryptoController extends AbstractController
     #[Route('/cryptos', name: 'getAllCryptos', methods: ['GET'])]
     public function getAll(Request $request): Response
     {
+        $token = $this->verifyToken($request);
         $data = json_decode($request->getContent(), true);
         $id = $data['id'] ?? null;
         $cryptoDataList = $this->cryptoDataService->getCryptoDataList();

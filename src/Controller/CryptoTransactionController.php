@@ -13,12 +13,13 @@ use App\Entity\ConfigDevise;
 use App\Entity\Crypto;
 use App\Entity\CryptoTransaction;
 
-class CryptoTransactionController extends AbstractController
+class CryptoTransactionController extends BaseController
 {
     private $entityManager;
     public function __construct(
         EntityManagerInterface $entityManager
     ) {
+        parent::__construct($entityManager);
         $this->entityManager = $entityManager;
     }
     #[Route('/CryptoTransaction', name: 'achatvente1', methods: ['POST'])]
@@ -28,6 +29,7 @@ class CryptoTransactionController extends AbstractController
         EntityManagerInterface $entityManager
     ): JsonResponse {
         // Récupérer les données JSON de la requête
+        $token = $this->verifyToken($request);
         $data = json_decode($request->getContent(), true);
 
         // Valider les données
@@ -96,6 +98,7 @@ class CryptoTransactionController extends AbstractController
     public function getTransaction(
         Request $request
     ): JsonResponse {
+        $token = $this->verifyToken($request);
         $statut = 200;
         $idUser = $request->get("userId",null);
         if (!isset($idUser)) {
@@ -109,8 +112,9 @@ class CryptoTransactionController extends AbstractController
         
     }
     #[Route('/user/{idUser}/cryptos', name: 'get_cryptos_amount', methods: ['GET'])]
-    public function getCryptoAmount(CryptoTransactionRepository $ctr,EntityManagerInterface $entityManager,int $idUser): JsonResponse
+    public function getCryptoAmount(CryptoTransactionRepository $ctr,EntityManagerInterface $entityManager,int $idUser,$request): JsonResponse
     {
+        $token = $this->verifyToken($request);
         $transaction = $ctr->getUserCrypto($entityManager,$idUser);
 
         if (!$transaction) {
