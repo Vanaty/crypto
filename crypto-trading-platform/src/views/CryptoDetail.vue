@@ -29,22 +29,30 @@
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title">Trade</h5>
-                <div class="mb-3 d-flex">
-                  <button class="btn btn-outline-secondary me-2" @click="setMinTrade">Min</button>
-                  <input type="number" v-model="amount" class="form-control"
-                         :max="getMaxTrade()"
-                         placeholder="Amount to trade" />
-                  <button class="btn btn-outline-secondary ms-2" @click="setMaxTrade">Max</button>
+                <div v-if="isLoading" class="text-center my-3">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p>Processing trade...</p>
                 </div>
-                <div class="d-grid gap-2 d-md-flex">
-                  <button @click="executeTrade('buy')" 
-                          class="btn btn-success flex-grow-1">
-                    Buy
-                  </button>
-                  <button @click="executeTrade('sell')" 
-                          class="btn btn-danger flex-grow-1">
-                    Sell
-                  </button>
+                <div v-else>
+                  <div class="mb-3 d-flex">
+                    <button class="btn btn-outline-secondary me-2" @click="setMinTrade">Min</button>
+                    <input type="number" v-model="amount" class="form-control"
+                           :max="getMaxTrade()"
+                           placeholder="Amount to trade" />
+                    <button class="btn btn-outline-secondary ms-2" @click="setMaxTrade">Max</button>
+                  </div>
+                  <div class="d-grid gap-2 d-md-flex">
+                    <button @click="executeTrade('buy')" 
+                            class="btn btn-success flex-grow-1">
+                      Buy
+                    </button>
+                    <button @click="executeTrade('sell')" 
+                            class="btn btn-danger flex-grow-1">
+                      Sell
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -74,6 +82,7 @@ const currencyStore = useCurrencyStore();
 const { cryptos } = storeToRefs(cryptoStore);
 const { balance } = storeToRefs(walletStore);
 const amount = ref(0);
+const isLoading = ref(false);
 
 const crypto = computed(() => 
   cryptos.value.find(c => c.id == route.params.id)
@@ -107,7 +116,7 @@ const formatCurrency = (amount: number) => {
 };
 
 const setMinTrade = () => {
-  amount.value = 0.01; // Set minimum trade amount
+  amount.value = 0.01;
 };
 
 const setMaxTrade = () => {
@@ -124,8 +133,9 @@ const getMaxTrade = () => {
 const executeTrade = async (type: 'buy' | 'sell') => {
   if (!crypto.value || amount.value <= 0 || amount.value > getMaxTrade()) return;
   
+  isLoading.value = true;
   try {
-    walletStore.executeTrade(
+    await walletStore.executeTrade(
       crypto.value.id,
       type,
       parseFloat(amount.value.toFixed(6)),
@@ -134,6 +144,7 @@ const executeTrade = async (type: 'buy' | 'sell') => {
   } catch (error) {
     alert(error instanceof Error ? error.message : 'Trade failed');
   }
+  isLoading.value = false;
   amount.value = 0;
 };
 </script>
