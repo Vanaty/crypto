@@ -9,6 +9,7 @@ use App\Repository\CryptoRepository;
 use App\Repository\DeviseRepository;
 use App\Service\CryptoCoursService;
 use App\Service\CryptoDataService;
+use App\Service\FirestoreSyncService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ class CryptoController extends BaseController
     private $cryptoRepository;
     private $deviseRepository;
     private ConfigDeviseRepository $configDeviseRepository;
+    private FirestoreSyncService $firestoreSync;
     private $entityManager;
     private CryptoDataService $cryptoDataService;
 
@@ -28,7 +30,8 @@ class CryptoController extends BaseController
         DeviseRepository $deviseRepository,
         ConfigDeviseRepository $configDeviseRepository,
         CryptoDataService $cryptoDataService,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        FirestoreSyncService $firestoreSync
     ) {
         parent::__construct($entityManager);
         $this->cryptoRepository = $cryptoRepository;
@@ -36,6 +39,7 @@ class CryptoController extends BaseController
         $this->entityManager = $entityManager;
         $this->cryptoDataService = $cryptoDataService;
         $this->configDeviseRepository = $configDeviseRepository;
+        $this->firestoreSync = $firestoreSync;
     }
 
     #[Route('/Random', name: 'random', methods: ['POST','GET'])]
@@ -72,7 +76,7 @@ class CryptoController extends BaseController
             $cryptoCours->setDevise($devise);
             $cryptoCours->setCours($cryptoCours->generateRandomCours());
             $cryptoCours->setDatetime(new \DateTime()); // Le cours est enregistré avec l'heure actuelle
-
+            $this->firestoreSync->syncCryptoCoursToFirestore($cryptoCours);
             // Sauvegarder dans la base de données
             $this->entityManager->persist($cryptoCours);
         }

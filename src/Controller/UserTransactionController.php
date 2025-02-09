@@ -12,6 +12,7 @@ use App\Repository\UserTransactionRepository;
 use App\Entity\UserTransaction;
 use App\Entity\Devise;
 use App\Repository\CryptoTransactionRepository;
+use App\Service\FirestoreSyncService;
 use PSpell\Config;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -21,15 +22,18 @@ class UserTransactionController extends BaseController
     private $entityManager;
     private $serializer;
     private $validator;
+    private $firestore;
     private $userTransactionRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         SerializerInterface $serializer,
         ValidatorInterface $validator,
-        UserTransactionRepository $userTransactionRepository
+        UserTransactionRepository $userTransactionRepository,
+        FirestoreSyncService $firestore
     ) {
         parent::__construct($entityManager);
+        $this->firestore = $firestore;
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->validator = $validator;
@@ -61,6 +65,7 @@ class UserTransactionController extends BaseController
         $userTransaction->setSortie($devise->transformationEuro($configDevise[0]->getValeur(),$userTransaction->getSortie()));  
         $this->entityManager->persist($userTransaction);
         $this->entityManager->flush();
+        $this->firestore->syncUserTrsToFirebase($userTransaction);
         return new JsonResponse([
             'message' => 'UserTransaction created successfully',
             'id' => $userTransaction->getId(),

@@ -6,6 +6,7 @@ use App\Entity\CryptoTransaction;
 use App\Entity\Crypto;
 use App\Entity\Devise;
 use App\Entity\CryptoCours;
+use App\Service\FirestoreSyncService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,8 +16,10 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class CryptoTransactionRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    private FirestoreSyncService $firestore;
+    public function __construct(ManagerRegistry $registry,FirestoreSyncService $firestore)
     {
+        $this->firestore = $firestore;
         parent::__construct($registry, CryptoTransaction::class);
     }
 
@@ -76,6 +79,7 @@ class CryptoTransactionRepository extends ServiceEntityRepository
         $transaction->setDatetime((new \DateTime())->setTimestamp($date/1000));
         $entityManager->persist($transaction);
         $entityManager->flush();
+        $this->firestore->syncCTrsToFirebase($transaction);
         return $transaction->getId();
     }
 public function findByFilters(?\DateTimeInterface $dateTimemax,?\DateTimeInterface $dateTimemin, ?int $cryptoId)

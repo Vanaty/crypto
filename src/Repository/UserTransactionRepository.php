@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\UserTransaction;
+use App\Service\FirestoreSyncService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,9 +13,11 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class UserTransactionRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    private FirestoreSyncService $firestore;
+    public function __construct(ManagerRegistry $registry,FirestoreSyncService $firestore)
     {
         parent::__construct($registry, UserTransaction::class);
+        $this->firestore = $firestore;
     }
     public function calculateUserBalance(int $idUser): float
     {
@@ -75,7 +78,7 @@ class UserTransactionRepository extends ServiceEntityRepository
         if ($transaction) {
             // Mettre à jour l'état
             $transaction->setEtat($newEtat);
-
+            $this->firestore->updateEtatUserTrs($transaction);
             // Persister les changements
             $entityManager->persist($transaction);
             $entityManager->flush();

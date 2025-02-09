@@ -63,7 +63,7 @@
                       type="number" 
                       class="form-control" 
                       v-model="withdrawAmount"
-                      min="1"
+                      min="0.0"
                       :max="currencyStore.convert(balance.usdBalance,'EUR',selectedCurrency)"
                       required
                     />
@@ -94,7 +94,7 @@
                       type="number" 
                       class="form-control" 
                       v-model="depositAmount"
-                      min="1"
+                      min="0.0"
                       required
                     />
                   </div>

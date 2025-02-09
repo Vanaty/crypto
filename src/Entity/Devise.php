@@ -22,6 +22,12 @@ class Devise
         return $this->id;
     }
 
+    public function setId(int $id): ?self
+    {
+        $this->id = $id;
+        return $this;
+    }
+
     public function getValeur(): ?string
     {
         return $this->valeur;

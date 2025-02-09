@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, computed} from 'vue';
+import { ref, computed, onMounted} from 'vue';
+import api from '../services/api';
 import axios from 'axios';
 import type { User, LoginCredentials, RegisterCredentials, AuthResponse } from '../types/auth';
 
@@ -21,12 +22,17 @@ export const useAuthStore = defineStore('auth', () => {
   const tempEmail = ref<string | null>(null);
 
   const isAuthenticated = computed(() => !!token.value && !!user.value);
+  
+  const getToken = () => {
+    return token.value;
+  }
 
   const setAuthData = (authResponse: AuthResponse) => {
     if (authResponse.token) {
       token.value = authResponse.token;
       user.value = authResponse.user;
       axios.defaults.headers.common['Authorization'] = `Bearer ${authResponse.token}`;
+      api.apiClient.defaults.headers.common['Authorization'] = `Bearer ${authResponse.token}`;
       localStorage.setItem('token', authResponse.token);
       localStorage.setItem('user', JSON.stringify(authResponse.user));
     }
@@ -79,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null;
     token.value = null;
     delete axios.defaults.headers.common['Authorization'];
+    delete api.apiClient.defaults.headers.common['Authorization'];
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
@@ -92,6 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
           token.value = savedToken;
           user.value = JSON.parse(savedUser);
           axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+          api.apiClient.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
           await validateToken();
         } else {
           logout();
@@ -194,11 +202,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  onMounted( async () => {
+    await initAuth();
+  });
+
   return {
     user,
     isAuthenticated,
     isOtpPending,
     isTfaPending,
+    getToken,
     register,
     login,
     logout,

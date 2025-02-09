@@ -4,8 +4,6 @@ import type { CryptoData, Transaction } from '../types/crypto';
 import api from '../services/api';
 import { useAuthStore } from './auth';
 
-const API_URL = new URL(import.meta.env.VITE_API_CRYPTO_URL).origin;
-
 export const useCryptoStore = defineStore('crypto', () => {
   const cryptos = ref<CryptoData[]>([]);
   const { user } = useAuthStore();
@@ -13,9 +11,9 @@ export const useCryptoStore = defineStore('crypto', () => {
   // Fonction pour récupérer les cryptos depuis l'API
   const fetchCryptos = async () => {
     try {
-      const response = await fetch(API_URL+"/cryptos");
-      if (!response.ok) throw new Error('Erreur lors du chargement des cryptos');
-      cryptos.value = await response.json();
+      const response = await api.apiClient.get("/cryptos");
+      if (response.status != 200) throw new Error('Erreur lors du chargement des cryptos');
+      cryptos.value =  response.data;
     } catch (error) {
       console.error('❌ Erreur API:', error);
     }
@@ -49,8 +47,8 @@ export const useCryptoStore = defineStore('crypto', () => {
   };
 
   // Charger les données initiales au montage
-  onMounted(() => {
-    fetchCryptos();
+  onMounted(async () => {
+    await fetchCryptos();
     fetchTransactions();
   });
 
