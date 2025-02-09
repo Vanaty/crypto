@@ -14,10 +14,11 @@ services:
     image: node:lts
     container_name: vue-app
     environment:
-      - =value
+      - VITE_API_URL=http://127.0.0.1:8080
+      - VITE_API_CRYPTO_URL=http://127.0.0.1:8082
     working_dir: /app
     volumes:
-      - ./crypto-trading-platform:/app
+      - ./frontend:/app
     ports:
       - "5173:5173"
     command: >
