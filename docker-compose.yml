@@ -2,20 +2,15 @@ services:
   php-symfony:
     build: .
     container_name: php-symfony
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
     ports:
       - "8082:8082"
-    command: >
-      sh -c "/var/www/html/cron-job.sh & php -S 0.0.0.0:8082 -t public"
 
   vue-app:
     image: node:lts
     container_name: vue-app
     environment:
-      - VITE_API_URL=http://127.0.0.1:8080
-      - VITE_API_CRYPTO_URL=http://127.0.0.1:8082
+      - VITE_API_URL=http://localhost:8080
+      - VITE_API_CRYPTO_URL=http://localhost:8082
     working_dir: /app
     volumes:
       - ./frontend:/app
